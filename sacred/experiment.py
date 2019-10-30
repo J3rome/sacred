@@ -237,6 +237,7 @@ class Experiment(Ingredient):
     def run(
         self,
         command_name: Optional[str] = None,
+        command_args: Optional[list] = None,
         config_updates: Optional[dict] = None,
         named_configs: Sequence[str] = (),
         info: Optional[dict] = None,
@@ -273,7 +274,9 @@ class Experiment(Ingredient):
         run = self._create_run(
             command_name, config_updates, named_configs, info, meta_info, options
         )
-        run()
+        if not command_args:
+            command_args = []
+        run(*command_args)
         return run
 
     def run_commandline(self, argv=None) -> Optional[Run]:

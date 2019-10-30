@@ -24,7 +24,15 @@ def run():
     config_mod = ConfigSummary()
     signature = mock.Mock()
     signature.name = "main_func"
-    main_func = mock.Mock(return_value=123, prefix="", signature=signature)
+
+    def side_effect(*args):
+        # TODO : Type checking ? Does mock have a function for this ?
+        for arg in args:
+            arg = arg + 10
+
+        return args
+
+    main_func = mock.Mock(return_value=123, prefix="", signature=signature, side_effect=side_effect)
     logger = mock.Mock()
     observer = [mock.Mock(priority=10)]
     return Run(config, config_mod, main_func, observer, logger, logger, {}, {}, [], [])
@@ -51,6 +59,15 @@ def test_run_run(run):
     assert (run.stop_time - datetime.utcnow()).total_seconds() < 1
     assert run.result == 123
     assert run.captured_out == ""
+
+
+def test_run_run_with_args(run):
+    assert run(2) == 12
+    assert run(foo=5) == 15
+    assert run(foo=6, bar=7) == [16, 17]
+    assert run(foo=6, bar=7) == [16, 17]
+    assert run(dict(foo=8, bar=9)) == [18, 19]
+    assert run([10, 11]) == [20, 21]
 
 
 def test_run_emits_events_if_successful(run):
